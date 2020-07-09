@@ -23,7 +23,7 @@
                 <el-dropdown-item command="time">时间</el-dropdown-item>
                 <el-dropdown-item command="paperFirst">纸电</el-dropdown-item>
                 <el-dropdown-item command="prefix">前缀</el-dropdown-item>
-                <el-dropdown-item command="subfix">后缀</el-dropdown-item>
+                <el-dropdown-item command="suffix">后缀</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
 
@@ -422,7 +422,7 @@ export default {
             console.log('取消排序');
           });
           break;
-        case 'subfix':
+        case 'suffix':
           this.$prompt('请输入后缀长度', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -485,7 +485,7 @@ export default {
             if(key == '') key = 0;
             key = parseInt(key);
             break;
-          case 'subfix':
+          case 'suffix':
             key = file.title;
             key = key.substr(key.length-fixLength);
             console.log('prefix:',key);
