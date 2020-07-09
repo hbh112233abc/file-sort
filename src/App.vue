@@ -82,13 +82,14 @@
 
 <script>
 const DEBUG = true; //调试模式使用测试数据,不提交保存
-const GET_ITEMS_URL = '__SELF__'; //初始化数据接口
-const SET_ITEMS_URL = '__SELF__'; //设置数据排序接口
+const GET_ITEMS_URL = ''; //初始化数据接口
+const SET_ITEMS_URL = ''; //设置数据排序接口
 
 import { Sortable, MultiDrag } from 'sortablejs';
 Sortable.mount(new MultiDrag());
 
 import axios from 'axios';
+import Qs from 'qs';
 const Axios = axios.create({
   baseURI: '/',
   headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -573,7 +574,7 @@ export default {
     init: function(){
       var _this = this;
       Axios.get(GET_ITEMS_URL).then(function(res){
-        if(res.data.errcode != 0){
+        if(res.data.code != 0){
           _this.$alert(res.data.msg);
           return;
         }
@@ -590,6 +591,7 @@ export default {
     },
     //保存结果
     save: function(){
+      let _this = this;
       let sortResult = [];
       for (let i = 0; i < this.files.length; i++) {
         const file = this.files[i];
