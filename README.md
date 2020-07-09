@@ -5,6 +5,9 @@
 ## 效果图
 ![demo](images/demo.gif)
 
+## DEMO
+[试一试](https://hbh112233abc.github.io/file-sort/)
+
 ## 环境依赖
 
 `Node >= 6`
