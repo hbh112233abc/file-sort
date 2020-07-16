@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <el-container>
-      <el-main>
+      <el-header height="auto">
         <el-row :gutter="10">
           <el-col :lg="16">
             <el-button round size="small" icon="el-icon-arrow-left" @click="goBack">返回</el-button>
@@ -43,7 +43,8 @@
             </el-input>
           </el-col>
         </el-row>
-
+      </el-header>
+      <el-main>
         <el-row :gutter="20">
           <el-col :lg="listSpan">
             <div id="list">
@@ -171,28 +172,9 @@ export default {
         evt.item;
         _this.checkItem(evt.item);
         _this.selected = evt.newIndicies;
-        console.log('----select----');
-        console.log(this);
-        console.log(this.multiDrag);
-        console.log(this.multiDragElements);
-        console.log(this.multiDrag.multiDragElements);
-        // console.log(evt.item);
-        // console.log('items:',evt.items);
-        // console.log('clone:',evt.clone);
-        // console.log('oldIndicies:',evt.oldIndicies);
-        // console.log('newIndicies:',evt.newIndicies);
-        console.log('----------------');
       },
       onDeselect: function(/**Event*/evt) {
         evt.item;
-        console.log('----deselect----');
-        console.log(this.multiDrag);
-        // console.log(evt.item);
-        // console.log('items:',evt.items);
-        // console.log('clone:',evt.clone);
-        // console.log('oldIndicies:',evt.oldIndicies);
-        // console.log('newIndicies:',evt.newIndicies);
-        console.log('----------------');
       },
       onUpdate: function(evt){
         //ui更新后数组排序需要同步更新
