@@ -1,59 +1,81 @@
 <template>
   <div id="app">
     <el-container>
-      <el-header height="auto">
-        <el-row :gutter="10">
-          <el-col :lg="16">
-            <el-button round size="small" icon="el-icon-arrow-left" @click="goBack">返回</el-button>
-            <el-button-group>
-              <el-button plain size="small" icon="el-icon-top" @click="move('top')">置顶</el-button>
-              <el-button  plain size="small" icon="el-icon-arrow-up" @click="move('up')">上移</el-button>
-              <el-button plain size="small" icon="el-icon-arrow-down" @click="move('down')">下移</el-button>
-              <el-button plain size="small" icon="el-icon-bottom" @click="move('bottom')">置底</el-button>
-            </el-button-group>
-
-            <el-dropdown @command="sortCommand">
-              <el-button plain size="small">
-                排序<i class="el-icon-arrow-down el-icon--right"></i>
-              </el-button>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="number">数字<i class="el-icon-right"></i></el-dropdown-item>
-                <el-dropdown-item command="reverseNumber">数字<i class="el-icon-back"></i></el-dropdown-item>
-                <el-dropdown-item command="text">文本</el-dropdown-item>
-                <el-dropdown-item command="time">时间</el-dropdown-item>
-                <el-dropdown-item command="paperFirst">纸电</el-dropdown-item>
-                <el-dropdown-item command="prefix">前缀</el-dropdown-item>
-                <el-dropdown-item command="suffix">后缀</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-
-            <el-button plain size="small" icon="el-icon-finished" @click="clearSeleced">清除选中</el-button>
-            <el-button plain size="small" type="warning" icon="el-icon-refresh-left" @click="undo" :disabled="undoable">撤销 {{historyIndex}}</el-button>
-            <el-button size="small" type="primary" icon="el-icon-circle-check" v-loading.fullscreen.lock="fullscreenLoading" @click="save">保存</el-button>
-          </el-col>
-          <el-col :lg="8">
-            <el-input
-              placeholder="查找文件"
-              suffix-icon="el-icon-search"
-              size="small"
-              v-model="keywords"
-              @blur="selectAll(keywords)"
-              @keyup.enter.native="selectAll(keywords)"
-              >
-            </el-input>
-          </el-col>
-        </el-row>
-      </el-header>
       <el-main>
+        <div id="menu" :class="menuFixed == true ? 'isFixed' :''">
+          <el-row :gutter="10"t>
+            <el-col :lg="16">
+              <el-button round size="small" icon="el-icon-arrow-left" @click="goBack">返回</el-button>
+              <el-button-group>
+                <el-button plain size="small" icon="el-icon-top" @click="move('top')">置顶</el-button>
+                <el-button  plain size="small" icon="el-icon-arrow-up" @click="move('up')">上移</el-button>
+                <el-button plain size="small" icon="el-icon-arrow-down" @click="move('down')">下移</el-button>
+                <el-button plain size="small" icon="el-icon-bottom" @click="move('bottom')">置底</el-button>
+              </el-button-group>
+              <el-dropdown @command="sortCommand">
+                <el-button plain size="small">
+                  排序<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-dropdown-menu slot="dropdown">
+                  <el-tooltip class="item" effect="dark" content="按标题中的(左到右)数字排序" placement="right">
+                    <el-dropdown-item command="number">数字<i class="el-icon-right"></i></el-dropdown-item>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" content="按标题中的(右到左)数字排序" placement="right">
+                    <el-dropdown-item command="reverseNumber">数字<i class="el-icon-back"></i></el-dropdown-item>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" content="按标题的文本排序" placement="right">
+                    <el-dropdown-item command="text">文本</el-dropdown-item>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" content="按标题前缀文本排序" placement="right">
+                    <el-dropdown-item command="prefix">前缀</el-dropdown-item>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" content="按标题后缀文本排序" placement="right">
+                    <el-dropdown-item command="subfix">后缀</el-dropdown-item>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" content="按文件时间排序" placement="right">
+                    <el-dropdown-item command="time">时间</el-dropdown-item>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" content="按文件类型(纸质在前,电子在后)排序" placement="right">
+                    <el-dropdown-item command="paperFirst">纸电</el-dropdown-item>
+                  </el-tooltip>
+                </el-dropdown-menu>
+              </el-dropdown>
+
+              <el-button plain size="small" icon="el-icon-finished" @click="clearSelected">清除选中</el-button>
+              <el-button plain size="small" type="warning" icon="el-icon-refresh-left" @click="undo" :disabled="undoable">撤销</el-button>
+              <el-button size="small" type="primary" icon="el-icon-circle-check" v-loading.fullscreen.lock="fullscreenLoading" @click="save">保存</el-button>
+            </el-col>
+            <el-col :lg="8">
+              <el-input
+                placeholder="查找文件"
+                suffix-icon="el-icon-search"
+                size="small"
+                v-model="keywords"
+                @blur="selectAll(keywords)"
+                @keyup.enter.native="selectAll(keywords)"
+                >
+              </el-input>
+            </el-col>
+          </el-row>
+        </div>
+
         <el-row :gutter="20">
           <el-col :lg="listSpan">
             <div id="list">
-              <div v-for="(file,index) in files" v-bind:key="file.id" :index="index" :id="file.id" class="" :class="{checked:file.checked}">
-                <el-alert
-                  type="info"
-                  :closable="false">
-                  <i :class="iconSelect(file.type)"></i> {{file.title}}
-                </el-alert>
+              <div v-for="(file,index) in files"
+                v-bind:key="file.id"
+                v-on:click="toggleCheck(index)"
+                :index="index"
+                :id="file.id"
+                :class="{checked:file.checked}">
+                <el-tooltip class="item" effect="dark" :content="fileTip(file)" placement="top-end">
+                  <el-alert
+                    type="info"
+
+                    :closable="false">
+                    <i :class="iconSelect(file.type)"></i> {{file.title}}
+                  </el-alert>
+                </el-tooltip>
               </div>
             </div>
           </el-col>
@@ -67,6 +89,7 @@
       </el-main>
     </el-container>
 
+
     <el-dialog
       title="提交内容"
       :visible.sync="dialogVisible">
@@ -77,14 +100,17 @@
         <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
       </span>
     </el-dialog>
-
   </div>
 </template>
 
 <script>
-const DEBUG = true; //调试模式使用测试数据,不提交保存
-const GET_ITEMS_URL = ''; //初始化数据接口
-const SET_ITEMS_URL = ''; //设置数据排序接口
+const DEBUG = false; //调试模式使用测试数据,不提交保存
+const GET_ITEMS_URL = location.href; //初始化数据接口
+const SET_ITEMS_URL = location.href; //设置数据排序接口
+let BACK_URL = ''; //返回链接
+if (BACK_URL == '') {
+  BACK_URL = document.referrer;
+}
 
 import { Sortable, MultiDrag } from 'sortablejs';
 Sortable.mount(new MultiDrag());
@@ -93,7 +119,10 @@ import axios from 'axios';
 import Qs from 'qs';
 const Axios = axios.create({
   baseURI: '/',
-  headers: {'X-Requested-With': 'XMLHttpRequest'},
+  headers: {
+    'X-Requested-With': 'XMLHttpRequest',
+    'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+  },
   transformRequest: [function (data) {
     const d = Qs.stringify(data)
     return d;
@@ -103,11 +132,10 @@ const Axios = axios.create({
 export default {
   data(){
     return {
-      selected:[],
       debug:DEBUG,
       submitResult:[], //提交结果
       dialogVisible: false, //提交结果提示窗显示状态
-      fullscreenLoading:false, //加载遮罩
+      fullscreenLoading:true, //加载遮罩
       keywords:"", //关键词
       history:[], //历史记录
       historyIndex:0, //历史记录索引
@@ -116,8 +144,12 @@ export default {
       checkChange:false, //选中状态
       topClick:false, //置顶点击
       bottomClick:false, //置底点击
+      menuFixed:false, //菜单固定标识
+      lastClickIndex:-1, //最后点击索引
+      shiftPress:false, //shift键是否按住
+      filesIdMap:{},//文件id索引
       files:[
-        /* 测试数据 */
+        /*测试数据*/
         {
           id:1,
           title:'111.edc',
@@ -126,41 +158,39 @@ export default {
           checked:0
         },
         {
-          id:2,
+          id:4,
           title:'222.edc',
           type:2,
           time:"2018-06-02 08:30:00",
           checked:0
         },
         {
-          id:3,
+          id:6,
           title:'333.edc',
           type:1,
           time:"2018-01-02 07:00:00",
           checked:0
         },
         {
-          id:4,
+          id:9,
           title:'444.edc',
           type:2,
           time:"2018-01-01 08:30:00",
-          checked:0
+          checked:1
         },
       ]
     }
   },
   mounted () {
     //初始化
-    var _this = this;
-
     if(!DEBUG){
       //获取数据
       this.init();
     } else {
-      _this.fullscreenLoading = false;
-      _this.history.push(_this.files); //初始版本
+      this.initData();
     }
 
+    var _this = this;
     var $ul = document.getElementById('list');
     new Sortable($ul, {
       multiDrag: true,
@@ -169,11 +199,12 @@ export default {
       animation: 150,
       forceFallback: true,
       onSelect: function(evt){
-        evt.item;
+        // console.log(evt.item);
         _this.checkItem(evt.item);
-        _this.selected = evt.newIndicies;
+        evt.item;
       },
-      onDeselect: function(/**Event*/evt) {
+      onDeselect: function(evt) {
+        _this.uncheckItem(evt.item);
         evt.item;
       },
       onUpdate: function(evt){
@@ -190,20 +221,44 @@ export default {
       }
     });
 
-    //监听ctrl+A
-    document.onkeydown = function(e) {
-      let key = window.event.keyCode;
-      if (key== 65 && event.ctrlKey) {
+    // 这个是获取键盘按住事件
+    window.addEventListener('keydown', code => {
+      if (code.keyCode === 16 && code.shiftKey) {
+        // 判断是否按住shift键
+        _this.shiftPress = true;
+      } else if (code.keyCode === 65 && code.ctrlKey) {
+        // 全选操作CTRL+A
         window.event.preventDefault() //关闭浏览器快捷键
-          _this.selectAll();
-        }
-    }
+        _this.selectAll('all');
+      }
+    });
+
+    // 这个是获取键盘松开事件
+    window.addEventListener('keyup', code => {
+      if(code.keyCode === 16){
+        // 判断是否松开shift键
+        _this.shiftPress = false;
+      }
+    });
+
+    //监听滚动条
+    window.addEventListener('scroll', this.handleScroll);
 
   },
   methods: {
     //返回
     goBack:function(){
-      window.history.go(-1);
+      window.location.href = BACK_URL;
+    },
+    //监听滚动条
+    handleScroll: function() {
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+      var offsetTop = document.querySelector('#menu').offsetTop;
+      if (scrollTop > offsetTop) {
+        this.menuFixed = true;
+      } else {
+        this.menuFixed = false;
+      }
     },
     //分配icon图标
     iconSelect:function(fileType){
@@ -213,13 +268,36 @@ export default {
         return 'el-icon-document';
       }
     },
+    //文件提示
+    fileTip: function(file){
+      let tip = '';
+      let fileTypeLabel = {
+        '0':'未知类型',
+        '1':'电子原件',
+        '2':'纸质原件',
+        '3':'复印件',
+      }
+      let fileType = fileTypeLabel[file.type.toString()] || '未知类型';
+      tip = '文件类型:'+ fileType +' 时间:'+file.time;
+      return tip;
+    },
+    //生成文件id映射数据
+    createFilesIdMap: function(files){
+      this.filesIdMap = {};
+      for (var i = files.length - 1; i >= 0; i--) {
+        this.filesIdMap[files[i].id] = files[i];
+      }
+    },
     //根据关键词选中,默认全选,关键词空格分隔
     selectAll: function(keywords){
       let keys = [];
-      if(keywords){
+      if(keywords == ''){
+        return;
+      }
+      if(keywords != 'all'){
         keys = keywords.split(' ');
       }
-      console.log(keys);
+
       let checkedCount = 0;
       this.files.forEach(function(file){
         let checked = 1;
@@ -233,7 +311,7 @@ export default {
         file.checked = checked;
         if(checked>0) checkedCount++;
       });
-      console.log(checkedCount);
+
       if(checkedCount <= 0){
         this.$message({
           showClose:true,
@@ -244,32 +322,74 @@ export default {
         this.checkChange = true;
       }
     },
-    //选中元素
-    checkItem: function(e){
-      let index = e.getAttribute('index');
-      this.files[index].checked = 1;
+    //选中动作
+    toggleCheck: function(index){
+      console.log(this.lastClickIndex);
+      if(this.shiftPress && this.lastClickIndex >= 0){
+        let minIndex = Math.min(index,this.lastClickIndex);
+        let maxIndex = Math.max(index,this.lastClickIndex);
+        this.clearSelected(false);
+        for (var i = this.files.length - 1; i >= 0; i--) {
+          if(i >= minIndex && i <= maxIndex){
+            this.files[i].checked = 1;
+          }
+        }
+      } else {
+        this.files[index].checked = Math.abs(this.files[index].checked - 1);
+        if(this.files[index].checked){
+          this.lastClickIndex = index;
+        } else {
+          this.lastClickIndex = -1;
+        }
+      }
       this.checkChange = true;
     },
+    //选中元素
+    checkItem: function(e){
+      // let index = e.getAttribute('index');
+      // this.files[index].checked = 1;
+      // this.checkChange = true;
+    },
+    //取消选中元素
+    uncheckItem: function(e){
+      // let index = e.getAttribute('index');
+      // this.files[index].checked = 0;
+      // this.checkChange = true;
+    },
     //清除选中
-    clearSeleced:function(){
+    clearSelected:function(clearLastIndex){
+      if(clearLastIndex == undefined){
+        clearLastIndex = true;
+      }
       this.keywords = "";
       this.files.forEach(function(file){
         file.checked = 0;
       });
       this.checkChange = true;
+      if(clearLastIndex){
+        this.lastClickIndex = -1;
+      }
     },
     //更新排序
     updateFilesSort: function(result){
       this.files = result;
-      this.history.push(result);
       this.historyIndex++;
+      this.history[this.historyIndex] = this.arrayColumn(result,'id');
       this.topClick = false;
       this.bottomClick = false;
     },
     //撤销
     undo: function(){
       this.historyIndex = Math.max(0,this.historyIndex-1);
-      this.files = this.history[this.historyIndex];
+      this.files = this.historyFiles(this.history[this.historyIndex]);
+      this.checkChange = true;
+    },
+    //历史数据根据记录里的id重新排序
+    historyFiles: function(idList){
+      let _this = this;
+      return idList.map(function(v,i){
+        return _this.filesIdMap[v];
+      });
     },
     //数组上移
     moveUpSort:function(list){
@@ -280,7 +400,7 @@ export default {
         if(item.checked == 0) continue;
         const prevItem = list[i-1];
         if(prevItem.checked == 1) continue;
-        console.log(item.title);
+
         //交换位置
         list[i-1] = item;
         list[i] = prevItem;
@@ -354,9 +474,9 @@ export default {
       for (let i = 0; i < this.files.length; i++) {
         const file = this.files[i];
         if(file.type == 1){
-          paperItems.push(file);
-        } else{
           electronItems.push(file);
+        } else{
+          paperItems.push(file);
         }
       }
 
@@ -401,11 +521,11 @@ export default {
             inputErrorMessage: '只能输入大于0的数字'
           }).then(({ value }) => {
             this.sortItems(type,1,value);
-          }).catch(() => {
+          }).catch(function(){
             console.log('取消排序');
           });
           break;
-        case 'suffix':
+        case 'subfix':
           this.$prompt('请输入后缀长度', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -414,7 +534,7 @@ export default {
             inputErrorMessage: '只能输入大于0的数字'
           }).then(({ value }) => {
             this.sortItems(type,1,value);
-          }).catch(() => {
+          }).catch(function(){
             console.log('取消排序');
           });
           break;
@@ -468,7 +588,7 @@ export default {
             if(key == '') key = 0;
             key = parseInt(key);
             break;
-          case 'suffix':
+          case 'subfix':
             key = file.title;
             key = key.substr(key.length-fixLength);
             console.log('prefix:',key);
@@ -530,6 +650,22 @@ export default {
 
       this.updateFilesSort(newResult);
     },
+    //获取数组字段
+    arrayColumn: function(array, columnName) {
+      if (array !== null) {
+        if (Array.isArray(array)) {
+          return array.map(function (value, index) {
+            return value[columnName];
+          });
+        } else if (typeof array === 'object') {
+          var newarray = []
+          for (var key in array) {
+            newarray.push(array[key][columnName]);
+          }
+          return newarray;
+        }
+      }
+    },
     //数组去重
     unique: function(arr){
       let res = [];
@@ -566,10 +702,22 @@ export default {
           file.checked = 0;
           _this.files.push(file);
         }
-        _this.fullscreenLoading = false;
+
+        _this.initData();
       }).catch(function(err){
-        _this.$alert('初始化失败');
+        _this.$alert('初始化失败','错误',{
+          confirmButtonText: '确定',
+          callback: function(){
+            _this.goBack();
+          }
+        });
       });
+    },
+    //数据初始化
+    initData: function(){
+      this.fullscreenLoading = false;
+      this.history[this.historyIndex] = this.arrayColumn(this.files,'id');
+      this.createFilesIdMap(this.files);
     },
     //保存结果
     save: function(){
@@ -579,7 +727,7 @@ export default {
         const file = this.files[i];
         sortResult.push({
           'id':file.id,
-          'sno':i
+          'sno':i+1
         });
       }
       this.fullscreenLoading = true;
@@ -662,6 +810,7 @@ export default {
       if(DEBUG) return 18;
       return 24;
     }
+
   }
 }
 </script>
@@ -680,26 +829,19 @@ export default {
     color: #409EFF;
   }
 
-  .el-alert__description {
+  .sortable-ghost {
+    background-color: #fde2e2
+  }
+
+  .el-alert .el-alert__description {
+    color:#606266;
+    font-size: 14px;
+    font-weight:bold;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
   }
-
-  /* .selected .el-alert {
-    background-color: #d9ecff;
-    color: #409EFF;
-    border: 1px solid #409EFF;
-  }
-  .selected .el-alert .el-alert__description {
-    font-weight: bold;
-    color: #409EFF;
-  }
-
-  .sortable-ghost {
-    background-color: #fde2e2
-  } */
 
   pre {
     display: block;
@@ -713,5 +855,14 @@ export default {
     background-color: #f5f5f5;
     border: 1px solid #ccc;
     border-radius: 4px;
+  }
+
+  .isFixed{
+    position:fixed;
+    background-color:#Fff;
+    top:0;
+    z-index:999;
+    width:98%;
+    padding:10px;
   }
 </style>
